@@ -1,0 +1,189 @@
+{
+  "info": {
+    "_postman_id": "clyvocare-qa-tests-sprint4",
+    "name": "Clyvo Care - Testes Automatizados API",
+    "description": "Casos de testes automatizados para conformidade da Sprint 4 da disciplina de Compliance, Quality Assurance & Tests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "CT-01: Cadastro de Tutor e Pet (Fluxo Positivo)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nomeTutor\": \"Carlos Eduardo\",\n  \"emailTutor\": \"carlos.vet@exemplo.com\",\n  \"telefoneTutor\": \"11987654321\",\n  \"pet\": {\n    \"nomePet\": \"Thor\",\n    \"especie\": \"Canina\",\n    \"raca\": \"Golden Retriever\",\n    \"dataNascimento\": \"2022-04-10\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tutores",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tutores"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code deve ser 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Valida retorno dos dados cadastrados e identificador gerado\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"id\");",
+              "    pm.expect(jsonData.nomeTutor).to.eql(\"Carlos Eduardo\");",
+              "    pm.collectionVariables.set(\"tutorId\", jsonData.id);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CT-02: Validacao de Payload Invalido (Fluxo Negativo)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nomeTutor\": \"Carlos Eduardo\",\n  \"emailTutor\": \"carlos.vet@exemplo.com\",\n  \"pet\": {\n    \"nomePet\": \"\",\n    \"especie\": \"Canina\",\n    \"raca\": \"Golden Retriever\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tutores",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "tutores"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code deve ser 400 Bad Request por falha no Bean Validation\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test(\"Resposta deve conter mensagem descritiva de erro\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"mensagem\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CT-03: Registro de HealthLog com Disparo de Alerta Preditivo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"petId\": 101,\n  \"temperatura\": 40.2,\n  \"nivelAtividade\": \"BAIXO\",\n  \"ingestaoAlimento\": false,\n  \"observacoes\": \"Pet apático no pós-operatório imediato.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/health-logs",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health-logs"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code deve ser 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"Alerta preditivo clinico deve ser acionado por febre/letargia\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.alertaClinico).to.eql(true);",
+              "    pm.expect(jsonData.nivelRisco).to.eql(\"ALTO\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "CT-04: Consulta de Historico Analitico (LAG e LEAD) e Tempo de Resposta",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/pets/101/historico-evolutivo",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "pets",
+            "101",
+            "historico-evolutivo"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code deve ser 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Tempo de resposta da API deve ser inferior a 800ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(800);",
+              "});",
+              "",
+              "pm.test(\"Validacao da estrutura de dados com funcoes analiticas de janela\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an(\"array\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
