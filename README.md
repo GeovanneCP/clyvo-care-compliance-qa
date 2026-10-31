@@ -45,5 +45,11 @@ Implementação de suíte de testes automatizados de integração cobrindo fluxo
 
 ### Instruções para reprodução:
 1. Executar o servidor de mock local:
-   ```bash
+   ```
    node server.js
+ 
+   ```
+
+Importar o arquivo ClyvoCare_Collection.json no Postman.
+
+Executar os testes via Collection Runner.
